@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.torque.mapper.SensorInfoMapper">
+    
+    <resultMap type="com.ruoyi.torque.domain.SensorInfo" id="SensorInfoResult">
+        <id     property="sensorId"    column="sensor_id"    />
+        <result property="sensorName"    column="sensor_name"    />
+        <result property="sensorType"    column="sensor_type"    />
+        <result property="modelNumber"    column="model_number"    />
+        <result property="manufacturer"    column="manufacturer"    />
+        <result property="measurementRange"    column="measurement_range"    />
+        <result property="accuracy"    column="accuracy"    />
+        <result property="installationLocation"    column="installation_location"    />
+        <result property="installationDate"    column="installation_date"    />
+        <result property="calibrationDate"    column="calibration_date"    />
+        <result property="nextCalibrationDate"    column="next_calibration_date"    />
+        <result property="status"    column="status"    />
+        <result property="remark"    column="remark"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectSensorInfoVo">
+        select sensor_id, sensor_name, sensor_type, model_number, manufacturer, measurement_range, accuracy, installation_location, installation_date, calibration_date, next_calibration_date, status, remark, create_by, create_time, update_by, update_time from sensor_info
+    </sql>
+
+    <select id="selectSensorInfoList" parameterType="com.ruoyi.torque.domain.SensorInfo" resultMap="SensorInfoResult">
+        <include refid="selectSensorInfoVo"/>
+        <where>  
+            <if test="sensorName != null  and sensorName != ''"> and sensor_name like concat('%', #{sensorName}, '%')</if>
+            <if test="sensorType != null  and sensorType != ''"> and sensor_type = #{sensorType}</if>
+            <if test="modelNumber != null  and modelNumber != ''"> and model_number = #{modelNumber}</if>
+            <if test="manufacturer != null  and manufacturer != ''"> and manufacturer like concat('%', #{manufacturer}, '%')</if>
+            <if test="installationLocation != null  and installationLocation != ''"> and installation_location like concat('%', #{installationLocation}, '%')</if>
+            <if test="installationDate != null "> and installation_date = #{installationDate}</if>
+            <if test="calibrationDate != null "> and calibration_date = #{calibrationDate}</if>
+            <if test="nextCalibrationDate != null "> and next_calibration_date = #{nextCalibrationDate}</if>
+            <if test="status != null "> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectSensorInfoBySensorId" parameterType="Long" resultMap="SensorInfoResult">
+        <include refid="selectSensorInfoVo"/>
+        where sensor_id = #{sensorId}
+    </select>
+        
+    <insert id="insertSensorInfo" parameterType="com.ruoyi.torque.domain.SensorInfo" useGeneratedKeys="true" keyProperty="sensorId">
+        insert into sensor_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="sensorName != null">sensor_name,</if>
+            <if test="sensorType != null">sensor_type,</if>
+            <if test="modelNumber != null">model_number,</if>
+            <if test="manufacturer != null">manufacturer,</if>
+            <if test="measurementRange != null">measurement_range,</if>
+            <if test="accuracy != null">accuracy,</if>
+            <if test="installationLocation != null">installation_location,</if>
+            <if test="installationDate != null">installation_date,</if>
+            <if test="calibrationDate != null">calibration_date,</if>
+            <if test="nextCalibrationDate != null">next_calibration_date,</if>
+            <if test="status != null">status,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="sensorName != null">#{sensorName},</if>
+            <if test="sensorType != null">#{sensorType},</if>
+            <if test="modelNumber != null">#{modelNumber},</if>
+            <if test="manufacturer != null">#{manufacturer},</if>
+            <if test="measurementRange != null">#{measurementRange},</if>
+            <if test="accuracy != null">#{accuracy},</if>
+            <if test="installationLocation != null">#{installationLocation},</if>
+            <if test="installationDate != null">#{installationDate},</if>
+            <if test="calibrationDate != null">#{calibrationDate},</if>
+            <if test="nextCalibrationDate != null">#{nextCalibrationDate},</if>
+            <if test="status != null">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSensorInfo" parameterType="com.ruoyi.torque.domain.SensorInfo">
+        update sensor_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="sensorName != null">sensor_name = #{sensorName},</if>
+            <if test="sensorType != null">sensor_type = #{sensorType},</if>
+            <if test="modelNumber != null">model_number = #{modelNumber},</if>
+            <if test="manufacturer != null">manufacturer = #{manufacturer},</if>
+            <if test="measurementRange != null">measurement_range = #{measurementRange},</if>
+            <if test="accuracy != null">accuracy = #{accuracy},</if>
+            <if test="installationLocation != null">installation_location = #{installationLocation},</if>
+            <if test="installationDate != null">installation_date = #{installationDate},</if>
+            <if test="calibrationDate != null">calibration_date = #{calibrationDate},</if>
+            <if test="nextCalibrationDate != null">next_calibration_date = #{nextCalibrationDate},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where sensor_id = #{sensorId}
+    </update>
+
+    <delete id="deleteSensorInfoBySensorId" parameterType="Long">
+        delete from sensor_info where sensor_id = #{sensorId}
+    </delete>
+
+    <delete id="deleteSensorInfoBySensorIds" parameterType="String">
+        delete from sensor_info where sensor_id in 
+        <foreach item="sensorId" collection="array" open="(" separator="," close=")">
+            #{sensorId}
+        </foreach>
+    </delete>
+</mapper> 

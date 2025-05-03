@@ -76,6 +76,26 @@ Vue.use(Element, {
   size: Cookies.get('size') || 'medium' // set element-ui default size
 })
 
+// 全局错误处理
+Vue.config.errorHandler = function(err, vm, info) {
+  console.error('Vue全局错误:', err);
+  console.error('错误信息:', info);
+  // 可以将错误上报到服务器
+  // 也可以显示友好的错误提示
+  Vue.prototype.$message({
+    message: '系统出现错误，请稍后重试：' + (err.message || '未知错误'),
+    type: 'error',
+    duration: 5000
+  });
+};
+
+// 全局Promise错误处理
+window.addEventListener('unhandledrejection', event => {
+  console.error('未处理的Promise拒绝:', event.reason);
+  // 防止默认处理（例如打印到控制台）
+  event.preventDefault();
+});
+
 Vue.config.productionTip = false
 
 new Vue({

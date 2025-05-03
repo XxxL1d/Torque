@@ -1,6 +1,9 @@
 package com.ruoyi.web.controller.system;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.ArrayUtils;
@@ -233,5 +236,57 @@ public class SysUserController extends BaseController
         userService.checkUserDataScope(userId);
         userService.insertUserAuth(userId, roleIds);
         return success();
+    }
+
+    /**
+     * 获取所有用户信息（简化版，主要用于下拉选择）
+     */
+    @GetMapping("/listAll")
+    public AjaxResult listAll()
+    {
+        List<SysUser> users = userService.selectUserList(new SysUser());
+        List<Map<String, Object>> list = users.stream().map(u -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("userId", u.getUserId());
+            map.put("userName", u.getUserName());
+            map.put("nickName", u.getNickName());
+            return map;
+        }).collect(Collectors.toList());
+        return AjaxResult.success(list);
+    }
+
+    /**
+     * 获取操作员角色的用户列表（用于扭矩数据操作人选择）
+     */
+    @GetMapping("/listOperators")
+    public AjaxResult listOperators()
+    {
+        // 查询所有角色，找到操作员角色
+        List<SysRole> allRoles = roleService.selectRoleAll();
+        List<Map<String, Object>> list = new ArrayList<>();
+        
+        // 查找roleKey为"operator"的角色
+        SysRole operatorRole = allRoles.stream()
+                .filter(role -> "operator".equals(role.getRoleKey()))
+                .findFirst()
+                .orElse(null);
+        
+        if (operatorRole != null) {
+            Long roleId = operatorRole.getRoleId();
+            // 查询此角色下的所有用户
+            SysUser user = new SysUser();
+            user.setRoleId(roleId);
+            List<SysUser> users = userService.selectAllocatedList(user);
+            
+            list = users.stream().map(u -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("userId", u.getUserId());
+                map.put("userName", u.getUserName());
+                map.put("nickName", u.getNickName());
+                return map;
+            }).collect(Collectors.toList());
+        }
+        
+        return AjaxResult.success(list);
     }
 }

@@ -24,6 +24,12 @@
             <optional>true</optional> <!-- 表示依赖不会传递 -->
         </dependency>
 
+        <!-- ShardingSphere-JDBC -->
+        <dependency>
+            <groupId>org.apache.shardingsphere</groupId>
+            <artifactId>shardingsphere-jdbc-core-spring-boot-starter</artifactId>
+        </dependency>
+
         <!-- swagger3-->
         <dependency>
             <groupId>io.springfox</groupId>
@@ -59,6 +65,13 @@
         <dependency>
             <groupId>com.ruoyi</groupId>
             <artifactId>ruoyi-generator</artifactId>
+        </dependency>
+        
+        <!-- 扭矩监控模块 -->
+        <dependency>
+            <groupId>com.ruoyi</groupId>
+            <artifactId>ruoyi-torque</artifactId>
+            <version>${ruoyi.version}</version>
         </dependency>
 
     </dependencies>

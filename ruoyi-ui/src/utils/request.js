@@ -17,7 +17,7 @@ const service = axios.create({
   // axios中请求配置有baseURL选项，表示请求URL公共部分
   baseURL: process.env.VUE_APP_BASE_API,
   // 超时
-  timeout: 10000
+  timeout: 30000  // 从10秒增加到30秒
 })
 
 // request拦截器
@@ -112,13 +112,22 @@ service.interceptors.response.use(res => {
     console.log('err' + error)
     let { message } = error;
     if (message == "Network Error") {
-      message = "后端接口连接异常";
+      message = "后端接口连接异常，请检查网络或后端服务状态";
     }
     else if (message.includes("timeout")) {
-      message = "系统接口请求超时";
+      message = "系统接口请求超时，请稍后重试";
     }
     else if (message.includes("Request failed with status code")) {
-      message = "系统接口" + message.substr(message.length - 3) + "异常";
+      const statusCode = message.substr(message.length - 3);
+      if (statusCode === '404') {
+        message = "请求的接口不存在，请确认接口地址";
+      } else if (statusCode === '500') {
+        message = "服务器内部错误，请联系管理员";
+      } else if (statusCode === '403') {
+        message = "没有权限访问该接口";
+      } else {
+        message = "系统接口" + statusCode + "异常";
+      }
     }
     Message({
       message: message,

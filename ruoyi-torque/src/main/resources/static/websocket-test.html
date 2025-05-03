@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>扭矩数据WebSocket测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        #messageContainer {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, button {
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>扭矩数据WebSocket测试</h2>
+        
+        <div class="form-group">
+            <label for="clientId">客户端ID：</label>
+            <input type="text" id="clientId" value="client001">
+        </div>
+        
+        <div class="form-group">
+            <button id="connect" onclick="connect()">连接</button>
+            <button id="disconnect" onclick="disconnect()" disabled>断开连接</button>
+        </div>
+        
+        <div class="form-group">
+            <label>消息记录：</label>
+            <div id="messageContainer"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="jsonData">发送JSON格式的扭矩数据：</label>
+            <textarea id="jsonData" rows="10">{
+  "sensorId": 1,
+  "deviceId": 1,
+  "torqueValue": 20.5,
+  "torqueUnit": "N·m",
+  "rpm": 1000,
+  "temperature": 25.3,
+  "dataQuality": 1,
+  "dataTime": "2023-05-01 16:30:00"
+}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <button id="send" onclick="sendMessage()" disabled>发送数据</button>
+        </div>
+        
+        <div class="form-group">
+            <h3>使用说明：</h3>
+            <ol>
+                <li>输入客户端ID（唯一标识符）</li>
+                <li>点击"连接"按钮连接WebSocket服务</li>
+                <li>编辑JSON数据（修改扭矩值等参数）</li>
+                <li>点击"发送数据"按钮发送扭矩数据</li>
+                <li>查看消息记录了解服务器响应</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        var websocket = null;
+        
+        function connect() {
+            var clientId = document.getElementById("clientId").value;
+            if (clientId.trim() === "") {
+                addMessage("错误: 客户端ID不能为空");
+                return;
+            }
+            
+            // 获取当前页面的主机和端口
+            var host = window.location.host;
+            var wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+            var wsUrl = wsProtocol + host + "/websocket/torque/" + clientId;
+            
+            if ('WebSocket' in window) {
+                websocket = new WebSocket(wsUrl);
+                
+                websocket.onopen = function() {
+                    addMessage("WebSocket连接已建立");
+                    document.getElementById("connect").disabled = true;
+                    document.getElementById("disconnect").disabled = false;
+                    document.getElementById("send").disabled = false;
+                };
+                
+                websocket.onmessage = function(event) {
+                    addMessage("收到消息: " + event.data);
+                };
+                
+                websocket.onclose = function() {
+                    addMessage("WebSocket连接已关闭");
+                    document.getElementById("connect").disabled = false;
+                    document.getElementById("disconnect").disabled = true;
+                    document.getElementById("send").disabled = true;
+                };
+                
+                websocket.onerror = function() {
+                    addMessage("WebSocket连接发生错误");
+                };
+            } else {
+                addMessage("错误: 浏览器不支持WebSocket");
+            }
+        }
+        
+        function disconnect() {
+            if (websocket !== null) {
+                websocket.close();
+                websocket = null;
+            }
+        }
+        
+        function sendMessage() {
+            if (websocket !== null && websocket.readyState === WebSocket.OPEN) {
+                var jsonData = document.getElementById("jsonData").value;
+                try {
+                    // 验证JSON格式是否有效
+                    JSON.parse(jsonData);
+                    websocket.send(jsonData);
+                    addMessage("发送数据: " + jsonData);
+                } catch (e) {
+                    addMessage("错误: 无效的JSON格式");
+                }
+            } else {
+                addMessage("错误: WebSocket未连接");
+            }
+        }
+        
+        function addMessage(message) {
+            var messageContainer = document.getElementById("messageContainer");
+            var timestamp = new Date().toLocaleTimeString();
+            var messageElement = document.createElement("div");
+            messageElement.innerHTML = "<strong>" + timestamp + "</strong>: " + message;
+            messageContainer.appendChild(messageElement);
+            
+            // 滚动到底部
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        }
+        
+        // 页面关闭时断开连接
+        window.onbeforeunload = function() {
+            disconnect();
+        };
+    </script>
+</body>
+</html> 

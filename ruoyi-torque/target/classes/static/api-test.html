@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>扭矩模块 API 测试客户端</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .api-section {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        #responseContainer {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+            font-family: monospace;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select, button {
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        textarea {
+            min-height: 80px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 16px;
+            margin: 0;
+            transition: 0.3s;
+            color: black;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #ccc;
+        }
+        .tabcontent {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            animation: fadeEffect 1s;
+        }
+        @keyframes fadeEffect {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        .login-container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        .login-status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .logged-in {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .logged-out {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .columns {
+            display: flex;
+            gap: 20px;
+        }
+        .column {
+            flex: 1;
+        }
+        .login-button {
+            background-color: #007bff;
+        }
+        .login-button:hover {
+            background-color: #0069d9;
+        }
+        .logout-button {
+            background-color: #dc3545;
+        }
+        .logout-button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>扭矩模块 API 测试客户端</h1>
+        
+        <!-- 登录表单 -->
+        <div class="login-container">
+            <h2>登录验证</h2>
+            <div class="columns">
+                <div class="column">
+                    <div class="form-group">
+                        <label for="username">用户名：</label>
+                        <input type="text" id="username" placeholder="请输入用户名">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">密码：</label>
+                        <input type="password" id="password" placeholder="请输入密码">
+                    </div>
+                    <div class="form-group">
+                        <label for="code">验证码：</label>
+                        <div style="display: flex;">
+                            <input type="text" id="code" style="flex: 1; margin-right: 10px;" placeholder="请输入验证码">
+                            <img id="captchaImg" style="height: 38px; cursor: pointer;" src="" alt="验证码" onclick="refreshCaptcha()">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button id="loginBtn" class="login-button" onclick="login()">登录</button>
+                        <button id="logoutBtn" class="logout-button" onclick="logout()" style="display: none;">注销</button>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="form-group">
+                        <label for="baseUrl">API 基础地址：</label>
+                        <input type="text" id="baseUrl" value="http://localhost:8081">
+                    </div>
+                    <div class="form-group">
+                        <label for="token">认证令牌：</label>
+                        <input type="text" id="token" placeholder="Bearer eyJhbGciOiJIUzUxMiJ9..." readonly>
+                    </div>
+                    <div id="loginStatus" class="login-status logged-out">
+                        未登录
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="responseContainer">
+            <div>API响应结果将显示在这里...</div>
+        </div>
+
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'analysis')">扭矩分析</button>
+            <button class="tablinks" onclick="openTab(event, 'data')">扭矩数据</button>
+            <button class="tablinks" onclick="openTab(event, 'device')">设备信息</button>
+            <button class="tablinks" onclick="openTab(event, 'sensor')">传感器信息</button>
+        </div>
+        
+        <!-- 扭矩分析接口 -->
+        <div id="analysis" class="tabcontent" style="display: block;">
+            <h2>扭矩分析接口</h2>
+            
+            <div class="api-section">
+                <h3>查询扭矩分析数据列表</h3>
+                <div class="form-group">
+                    <label for="analysis-list-deviceId">设备ID：</label>
+                    <input type="text" id="analysis-list-deviceId" placeholder="填入设备ID">
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('GET', '/torque/analysis/list', getAnalysisListParams)">查询</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>获取趋势分析数据</h3>
+                <div class="form-group">
+                    <label for="analysis-trend-deviceId">设备ID：</label>
+                    <input type="text" id="analysis-trend-deviceId" placeholder="填入设备ID">
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('GET', '/torque/analysis/trend', getAnalysisTrendParams)">查询</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>获取设备对比数据</h3>
+                <div class="form-group">
+                    <label for="analysis-deviceComparison-deviceId">设备ID：</label>
+                    <input type="text" id="analysis-deviceComparison-deviceId" placeholder="填入设备ID">
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('GET', '/torque/analysis/deviceComparison', getAnalysisDeviceComparisonParams)">查询</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>获取传感器对比数据</h3>
+                <div class="form-group">
+                    <label for="analysis-sensorComparison-deviceId">设备ID：</label>
+                    <input type="text" id="analysis-sensorComparison-deviceId" placeholder="填入设备ID">
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('GET', '/torque/analysis/sensorComparison', getAnalysisSensorComparisonParams)">查询</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>获取异常分析数据</h3>
+                <div class="form-group">
+                    <label for="analysis-anomaly-deviceId">设备ID：</label>
+                    <input type="text" id="analysis-anomaly-deviceId" placeholder="填入设备ID">
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('GET', '/torque/analysis/anomaly', getAnalysisAnomalyParams)">查询</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 扭矩数据接口 -->
+        <div id="data" class="tabcontent">
+            <h2>扭矩数据接口</h2>
+            
+            <div class="api-section">
+                <h3>查询扭矩数据列表</h3>
+                <div class="form-group">
+                    <label for="data-list-deviceId">设备ID：</label>
+                    <input type="text" id="data-list-deviceId" placeholder="填入设备ID">
+                </div>
+                <div class="form-group">
+                    <label for="data-list-sensorId">传感器ID：</label>
+                    <input type="text" id="data-list-sensorId" placeholder="填入传感器ID">
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('GET', '/torque/data/list', getDataListParams)">查询</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>获取扭矩数据详细信息</h3>
+                <div class="form-group">
+                    <label for="data-info-dataId">数据ID：</label>
+                    <input type="text" id="data-info-dataId" placeholder="填入数据ID">
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('GET', '/torque/data/' + document.getElementById('data-info-dataId').value, null)">查询</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>新增扭矩数据</h3>
+                <div class="form-group">
+                    <label for="data-add-json">JSON数据：</label>
+                    <textarea id="data-add-json" placeholder="填入JSON格式数据">{
+  "deviceId": 1,
+  "sensorId": 1,
+  "torqueValue": 20.5,
+  "torqueUnit": "N·m",
+  "rpm": 1000,
+  "temperature": 25.3,
+  "dataQuality": 1
+}</textarea>
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('POST', '/torque/data', getDataAddJson)">新增</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>修改扭矩数据</h3>
+                <div class="form-group">
+                    <label for="data-edit-json">JSON数据：</label>
+                    <textarea id="data-edit-json" placeholder="填入JSON格式数据">{
+  "dataId": 1,
+  "deviceId": 1,
+  "sensorId": 1,
+  "torqueValue": 25.8,
+  "torqueUnit": "N·m",
+  "rpm": 1200,
+  "temperature": 26.1,
+  "dataQuality": 1
+}</textarea>
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('PUT', '/torque/data', getDataEditJson)">修改</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>删除扭矩数据</h3>
+                <div class="form-group">
+                    <label for="data-delete-dataIds">数据ID列表：</label>
+                    <input type="text" id="data-delete-dataIds" placeholder="填入数据ID，多个ID用逗号分隔">
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('DELETE', '/torque/data/' + document.getElementById('data-delete-dataIds').value, null)">删除</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 设备信息接口 -->
+        <div id="device" class="tabcontent">
+            <h2>设备信息接口</h2>
+            
+            <div class="api-section">
+                <h3>查询设备信息列表</h3>
+                <div class="form-group">
+                    <label for="device-list-deviceName">设备名称：</label>
+                    <input type="text" id="device-list-deviceName" placeholder="填入设备名称关键字">
+                </div>
+                <div class="form-group">
+                    <label for="device-list-status">设备状态：</label>
+                    <select id="device-list-status">
+                        <option value="">全部</option>
+                        <option value="0">正常运行</option>
+                        <option value="1">停机维护</option>
+                        <option value="2">故障</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('GET', '/torque/device/list', getDeviceListParams)">查询</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>获取设备信息详细信息</h3>
+                <div class="form-group">
+                    <label for="device-info-deviceId">设备ID：</label>
+                    <input type="text" id="device-info-deviceId" placeholder="填入设备ID">
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('GET', '/torque/device/' + document.getElementById('device-info-deviceId').value, null)">查询</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>新增设备信息</h3>
+                <div class="form-group">
+                    <label for="device-add-json">JSON数据：</label>
+                    <textarea id="device-add-json" placeholder="填入JSON格式数据">{
+  "deviceName": "测试设备",
+  "deviceType": "扭矩测试仪",
+  "modelNumber": "TQ-2000",
+  "manufacturer": "测试制造商",
+  "installationLocation": "车间A",
+  "department": "质检部",
+  "responsiblePerson": "张工",
+  "status": 0,
+  "maintenanceCycle": 30
+}</textarea>
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('POST', '/torque/device', getDeviceAddJson)">新增</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>修改设备信息</h3>
+                <div class="form-group">
+                    <label for="device-edit-json">JSON数据：</label>
+                    <textarea id="device-edit-json" placeholder="填入JSON格式数据">{
+  "deviceId": 1,
+  "deviceName": "已更新设备",
+  "deviceType": "扭矩测试仪",
+  "modelNumber": "TQ-2000",
+  "manufacturer": "测试制造商",
+  "installationLocation": "车间B",
+  "department": "质检部",
+  "responsiblePerson": "李工",
+  "status": 0,
+  "maintenanceCycle": 45
+}</textarea>
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('PUT', '/torque/device', getDeviceEditJson)">修改</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>删除设备信息</h3>
+                <div class="form-group">
+                    <label for="device-delete-deviceIds">设备ID列表：</label>
+                    <input type="text" id="device-delete-deviceIds" placeholder="填入设备ID，多个ID用逗号分隔">
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('DELETE', '/torque/device/' + document.getElementById('device-delete-deviceIds').value, null)">删除</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 传感器信息接口 -->
+        <div id="sensor" class="tabcontent">
+            <h2>传感器信息接口</h2>
+            
+            <div class="api-section">
+                <h3>查询传感器信息列表</h3>
+                <div class="form-group">
+                    <label for="sensor-list-sensorName">传感器名称：</label>
+                    <input type="text" id="sensor-list-sensorName" placeholder="填入传感器名称关键字">
+                </div>
+                <div class="form-group">
+                    <label for="sensor-list-status">传感器状态：</label>
+                    <select id="sensor-list-status">
+                        <option value="">全部</option>
+                        <option value="0">正常</option>
+                        <option value="1">停用</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('GET', '/torque/sensor/list', getSensorListParams)">查询</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>获取传感器信息详细信息</h3>
+                <div class="form-group">
+                    <label for="sensor-info-sensorId">传感器ID：</label>
+                    <input type="text" id="sensor-info-sensorId" placeholder="填入传感器ID">
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('GET', '/torque/sensor/' + document.getElementById('sensor-info-sensorId').value, null)">查询</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>新增传感器信息</h3>
+                <div class="form-group">
+                    <label for="sensor-add-json">JSON数据：</label>
+                    <textarea id="sensor-add-json" placeholder="填入JSON格式数据">{
+  "sensorName": "测试传感器",
+  "sensorType": "扭矩传感器",
+  "modelNumber": "TS-100",
+  "manufacturer": "传感器制造商",
+  "measurementRange": "0-500N·m",
+  "accuracy": "±0.5%",
+  "protocolType": "MODBUS",
+  "installationLocation": "生产线1",
+  "status": 0
+}</textarea>
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('POST', '/torque/sensor', getSensorAddJson)">新增</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>修改传感器信息</h3>
+                <div class="form-group">
+                    <label for="sensor-edit-json">JSON数据：</label>
+                    <textarea id="sensor-edit-json" placeholder="填入JSON格式数据">{
+  "sensorId": 1,
+  "sensorName": "已更新传感器",
+  "sensorType": "扭矩传感器",
+  "modelNumber": "TS-200",
+  "manufacturer": "传感器制造商",
+  "measurementRange": "0-800N·m",
+  "accuracy": "±0.3%",
+  "protocolType": "MODBUS",
+  "installationLocation": "生产线2",
+  "status": 0
+}</textarea>
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('PUT', '/torque/sensor', getSensorEditJson)">修改</button>
+                </div>
+            </div>
+            
+            <div class="api-section">
+                <h3>删除传感器信息</h3>
+                <div class="form-group">
+                    <label for="sensor-delete-sensorIds">传感器ID列表：</label>
+                    <input type="text" id="sensor-delete-sensorIds" placeholder="填入传感器ID，多个ID用逗号分隔">
+                </div>
+                <div class="form-group">
+                    <button onclick="callApi('DELETE', '/torque/sensor/' + document.getElementById('sensor-delete-sensorIds').value, null)">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 验证码UUID
+        var uuid = "";
+        
+        // 页面加载时刷新验证码
+        document.addEventListener("DOMContentLoaded", function() {
+            refreshCaptcha();
+            
+            // 检查是否已有登录状态
+            var savedToken = localStorage.getItem('ruoyi_token');
+            if (savedToken) {
+                document.getElementById('token').value = savedToken;
+                updateLoginStatus(true);
+            }
+        });
+        
+        function refreshCaptcha() {
+            uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0,
+                    v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            var baseUrl = document.getElementById("baseUrl").value;
+            
+            // 使用fetch请求获取验证码
+            fetch(baseUrl + "/captchaImage", {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 200) {
+                    // 设置验证码UUID
+                    uuid = data.uuid;
+                    // 设置验证码图片 - 处理base64图片
+                    document.getElementById("captchaImg").src = "data:image/png;base64," + data.img;
+                    addResponse("验证码获取成功");
+                } else {
+                    addResponse("验证码获取失败: " + data.msg, true);
+                }
+            })
+            .catch(error => {
+                addResponse("验证码请求错误: " + error.message, true);
+            });
+        }
+        
+        function login() {
+            var baseUrl = document.getElementById("baseUrl").value;
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+            var code = document.getElementById("code").value;
+            
+            if (!username || !password || !code) {
+                addResponse("错误: 用户名、密码和验证码不能为空", true);
+                return;
+            }
+            
+            var loginData = {
+                username: username,
+                password: password,
+                code: code,
+                uuid: uuid
+            };
+            
+            addResponse("正在登录...");
+            
+            fetch(baseUrl + "/login", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(loginData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 200) {
+                    var token = "Bearer " + data.token;
+                    document.getElementById("token").value = token;
+                    localStorage.setItem('ruoyi_token', token);
+                    addResponse("登录成功: " + data.msg);
+                    updateLoginStatus(true);
+                } else {
+                    addResponse("登录失败: " + data.msg, true);
+                    refreshCaptcha();
+                }
+            })
+            .catch(error => {
+                addResponse("登录请求错误: " + error.message, true);
+                refreshCaptcha();
+            });
+        }
+        
+        function logout() {
+            var baseUrl = document.getElementById("baseUrl").value;
+            var token = document.getElementById("token").value;
+            
+            if (!token) {
+                updateLoginStatus(false);
+                return;
+            }
+            
+            fetch(baseUrl + "/logout", {
+                method: 'POST',
+                headers: {
+                    'Authorization': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                addResponse("注销成功: " + data.msg);
+                document.getElementById("token").value = "";
+                localStorage.removeItem('ruoyi_token');
+                updateLoginStatus(false);
+            })
+            .catch(error => {
+                addResponse("注销请求错误: " + error.message, true);
+                // 即使注销失败，也清除本地令牌
+                document.getElementById("token").value = "";
+                localStorage.removeItem('ruoyi_token');
+                updateLoginStatus(false);
+            });
+        }
+        
+        function updateLoginStatus(isLoggedIn) {
+            var loginStatus = document.getElementById("loginStatus");
+            var loginBtn = document.getElementById("loginBtn");
+            var logoutBtn = document.getElementById("logoutBtn");
+            
+            if (isLoggedIn) {
+                loginStatus.textContent = "已登录";
+                loginStatus.className = "login-status logged-in";
+                loginBtn.style.display = "none";
+                logoutBtn.style.display = "block";
+            } else {
+                loginStatus.textContent = "未登录";
+                loginStatus.className = "login-status logged-out";
+                loginBtn.style.display = "block";
+                logoutBtn.style.display = "none";
+            }
+        }
+        
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        
+        function addResponse(message, isError = false) {
+            var responseContainer = document.getElementById("responseContainer");
+            var timestamp = new Date().toLocaleTimeString();
+            var messageElement = document.createElement("div");
+            messageElement.className = isError ? "error" : "success";
+            messageElement.innerHTML = "<strong>" + timestamp + "</strong>: " + message;
+            responseContainer.appendChild(messageElement);
+            
+            // 滚动到底部
+            responseContainer.scrollTop = responseContainer.scrollHeight;
+        }
+        
+        function callApi(method, endpoint, paramsFunction) {
+            var baseUrl = document.getElementById("baseUrl").value;
+            var token = document.getElementById("token").value;
+            
+            if (!baseUrl) {
+                addResponse("错误: API基础地址不能为空", true);
+                return;
+            }
+            
+            if (!token) {
+                addResponse("错误: 未登录，请先登录获取认证令牌", true);
+                return;
+            }
+            
+            var url = baseUrl + endpoint;
+            var params = null;
+            var body = null;
+            
+            if (paramsFunction && method === 'GET') {
+                params = paramsFunction();
+                if (params) {
+                    url += '?' + new URLSearchParams(params).toString();
+                }
+            } else if (paramsFunction && (method === 'POST' || method === 'PUT')) {
+                body = paramsFunction();
+            }
+            
+            // 创建请求选项
+            var options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                }
+            };
+            
+            // 添加请求体
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            addResponse("发送 " + method + " 请求: " + url);
+            
+            // 发送请求
+            fetch(url, options)
+                .then(response => {
+                    if (response.status === 401) {
+                        // 如果返回401未授权，可能是令牌过期，尝试自动刷新令牌
+                        addResponse("认证失败：令牌可能已过期，请重新登录", true);
+                        updateLoginStatus(false);
+                        throw new Error('认证失败，请重新登录');
+                    }
+                    
+                    if (!response.ok) {
+                        throw new Error('HTTP状态码: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    addResponse("响应数据: " + JSON.stringify(data, null, 2));
+                })
+                .catch(error => {
+                    addResponse("请求错误: " + error.message, true);
+                });
+        }
+        
+        // 参数获取函数
+        function getAnalysisListParams() {
+            var deviceId = document.getElementById("analysis-list-deviceId").value;
+            var params = {};
+            if (deviceId) params.deviceId = deviceId;
+            return params;
+        }
+        
+        function getAnalysisTrendParams() {
+            var deviceId = document.getElementById("analysis-trend-deviceId").value;
+            var params = {};
+            if (deviceId) params.deviceId = deviceId;
+            return params;
+        }
+        
+        function getAnalysisDeviceComparisonParams() {
+            var deviceId = document.getElementById("analysis-deviceComparison-deviceId").value;
+            var params = {};
+            if (deviceId) params.deviceId = deviceId;
+            return params;
+        }
+        
+        function getAnalysisSensorComparisonParams() {
+            var deviceId = document.getElementById("analysis-sensorComparison-deviceId").value;
+            var params = {};
+            if (deviceId) params.deviceId = deviceId;
+            return params;
+        }
+        
+        function getAnalysisAnomalyParams() {
+            var deviceId = document.getElementById("analysis-anomaly-deviceId").value;
+            var params = {};
+            if (deviceId) params.deviceId = deviceId;
+            return params;
+        }
+        
+        function getDataListParams() {
+            var deviceId = document.getElementById("data-list-deviceId").value;
+            var sensorId = document.getElementById("data-list-sensorId").value;
+            var params = {};
+            if (deviceId) params.deviceId = deviceId;
+            if (sensorId) params.sensorId = sensorId;
+            return params;
+        }
+        
+        function getDataAddJson() {
+            try {
+                return JSON.parse(document.getElementById("data-add-json").value);
+            } catch (e) {
+                addResponse("错误: JSON格式不正确 - " + e.message, true);
+                return null;
+            }
+        }
+        
+        function getDataEditJson() {
+            try {
+                return JSON.parse(document.getElementById("data-edit-json").value);
+            } catch (e) {
+                addResponse("错误: JSON格式不正确 - " + e.message, true);
+                return null;
+            }
+        }
+        
+        function getDeviceListParams() {
+            var deviceName = document.getElementById("device-list-deviceName").value;
+            var status = document.getElementById("device-list-status").value;
+            var params = {};
+            if (deviceName) params.deviceName = deviceName;
+            if (status) params.status = status;
+            return params;
+        }
+        
+        function getDeviceAddJson() {
+            try {
+                return JSON.parse(document.getElementById("device-add-json").value);
+            } catch (e) {
+                addResponse("错误: JSON格式不正确 - " + e.message, true);
+                return null;
+            }
+        }
+        
+        function getDeviceEditJson() {
+            try {
+                return JSON.parse(document.getElementById("device-edit-json").value);
+            } catch (e) {
+                addResponse("错误: JSON格式不正确 - " + e.message, true);
+                return null;
+            }
+        }
+        
+        function getSensorListParams() {
+            var sensorName = document.getElementById("sensor-list-sensorName").value;
+            var status = document.getElementById("sensor-list-status").value;
+            var params = {};
+            if (sensorName) params.sensorName = sensorName;
+            if (status) params.status = status;
+            return params;
+        }
+        
+        function getSensorAddJson() {
+            try {
+                return JSON.parse(document.getElementById("sensor-add-json").value);
+            } catch (e) {
+                addResponse("错误: JSON格式不正确 - " + e.message, true);
+                return null;
+            }
+        }
+        
+        function getSensorEditJson() {
+            try {
+                return JSON.parse(document.getElementById("sensor-edit-json").value);
+            } catch (e) {
+                addResponse("错误: JSON格式不正确 - " + e.message, true);
+                return null;
+            }
+        }
+    </script>
+</body>
+</html> 
