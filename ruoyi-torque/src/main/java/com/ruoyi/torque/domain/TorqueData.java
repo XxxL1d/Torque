@@ -75,6 +75,7 @@ public class TorqueData extends BaseEntity
     {
         return dataId;
     }
+    
     public void setSensorId(Long sensorId) 
     {
         this.sensorId = sensorId;

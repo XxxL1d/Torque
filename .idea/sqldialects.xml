@@ -3,7 +3,7 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/sql/quartz.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/sql/ry_20220625.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/sql/torque_monitor.sql" dialect="MySQL" />
-    <file url="file://$PROJECT_DIR$/sql/torque_monitor_data.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/ry_tq.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/sql/torque_test_data.sql" dialect="MySQL" />
   </component>
 </project>

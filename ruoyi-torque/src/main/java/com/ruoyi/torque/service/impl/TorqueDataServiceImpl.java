@@ -3,6 +3,7 @@ package com.ruoyi.torque.service.impl;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.apache.commons.lang3.StringUtils;
 import com.ruoyi.torque.mapper.TorqueDataMapper;
 import com.ruoyi.torque.domain.TorqueData;
 import com.ruoyi.torque.service.ITorqueDataService;
@@ -51,6 +52,11 @@ public class TorqueDataServiceImpl implements ITorqueDataService
     @Override
     public int insertTorqueData(TorqueData torqueData)
     {
+        // 设置默认的扭矩单位为"N·m"
+        if (torqueData.getTorqueUnit() == null || StringUtils.isEmpty(torqueData.getTorqueUnit()))
+        {
+            torqueData.setTorqueUnit("N·m");
+        }
         return torqueDataMapper.insertTorqueData(torqueData);
     }
 

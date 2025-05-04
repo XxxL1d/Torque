@@ -1,153 +1,153 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.torque.mapper.TorqueAnalysisMapper">
-    
+
     <resultMap type="TorqueAnalysis" id="TorqueAnalysisResult">
-        <result property="dataId"    column="data_id"    />
-        <result property="deviceId"    column="device_id"    />
-        <result property="deviceName"    column="device_name"    />
-        <result property="sensorId"    column="sensor_id"    />
-        <result property="sensorName"    column="sensor_name"    />
-        <result property="torqueValue"    column="torque_value"    />
-        <result property="measureTime"    column="measure_time"    />
-        <result property="avgTorque"    column="avg_torque"    />
-        <result property="maxTorque"    column="max_torque"    />
-        <result property="minTorque"    column="min_torque"    />
-        <result property="stdDeviation"    column="std_deviation"    />
-        <result property="count"    column="count"    />
-        <result property="anomalyFlag"    column="anomaly_flag"    />
-        <result property="createTime"    column="create_time"    />
-        <result property="updateTime"    column="update_time"    />
-        <result property="remark"    column="remark"    />
+        <result property="dataId" column="data_id"/>
+        <result property="deviceId" column="device_id"/>
+        <result property="deviceName" column="device_name"/>
+        <result property="sensorId" column="sensor_id"/>
+        <result property="sensorName" column="sensor_name"/>
+        <result property="torqueValue" column="torque_value"/>
+        <result property="measureTime" column="measure_time"/>
+        <result property="avgTorque" column="avg_torque"/>
+        <result property="maxTorque" column="max_torque"/>
+        <result property="minTorque" column="min_torque"/>
+        <result property="stdDeviation" column="std_deviation"/>
+        <result property="count" column="count"/>
+        <result property="anomalyFlag" column="anomaly_flag"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
     </resultMap>
-    
+
     <resultMap type="TorqueData" id="TorqueDataResult">
-        <id     property="dataId"       column="data_id"       />
-        <result property="deviceId"    column="device_id"    />
-        <result property="deviceName"    column="device_name"    />
-        <result property="sensorId"    column="sensor_id"    />
-        <result property="sensorName"    column="sensor_name"    />
-        <result property="torqueValue"    column="torque_value"    />
-        <result property="torqueUnit"    column="torque_unit"    />
-        <result property="rpm"    column="rpm"    />
-        <result property="temperature"    column="temperature"    />
-        <result property="dataTime"    column="data_time"    />
-        <result property="dataQuality"    column="data_quality"    />
-        <result property="createTime"    column="create_time"    />
+        <id property="dataId" column="data_id"/>
+        <result property="deviceId" column="device_id"/>
+        <result property="deviceName" column="device_name"/>
+        <result property="sensorId" column="sensor_id"/>
+        <result property="sensorName" column="sensor_name"/>
+        <result property="torqueValue" column="torque_value"/>
+        <result property="torqueUnit" column="torque_unit"/>
+        <result property="rpm" column="rpm"/>
+        <result property="temperature" column="temperature"/>
+        <result property="dataTime" column="data_time"/>
+        <result property="dataQuality" column="data_quality"/>
+        <result property="createTime" column="create_time"/>
     </resultMap>
 
     <!-- 查询趋势分析数据 -->
     <select id="selectTrendData" parameterType="java.util.Map" resultMap="TorqueDataResult">
-        SELECT d.data_id, d.device_id, dev.device_name, d.sensor_id, s.sensor_name, 
-               d.torque_value, d.data_time, d.data_quality, d.create_time, d.torque_unit, d.rpm, d.temperature
+        SELECT d.data_id, d.device_id, dev.device_name, d.sensor_id, s.sensor_name,
+        d.torque_value, d.data_time, d.data_quality, d.create_time, d.torque_unit, d.rpm, d.temperature
         FROM torque_data d
         LEFT JOIN device_info dev ON d.device_id = dev.device_id
         LEFT JOIN sensor_info s ON d.sensor_id = s.sensor_id
         <where>
-            <if test="deviceId != null "> and d.device_id = #{deviceId}</if>
-            <if test="sensorId != null "> and d.sensor_id = #{sensorId}</if>
-            <if test="startTime != null and startTime != ''"> and d.data_time &gt;= #{startTime}</if>
-            <if test="endTime != null and endTime != ''"> and d.data_time &lt;= #{endTime}</if>
+            <if test="deviceId != null ">and d.device_id = #{deviceId}</if>
+            <if test="sensorId != null ">and d.sensor_id = #{sensorId}</if>
+            <if test="startTime != null and startTime != ''">and d.data_time &gt;= #{startTime}</if>
+            <if test="endTime != null and endTime != ''">and d.data_time &lt;= #{endTime}</if>
         </where>
         ORDER BY d.data_time ASC
     </select>
-    
+
     <!-- 按设备对比分析数据 -->
     <select id="selectDeviceComparisonData" parameterType="java.util.Map" resultMap="TorqueAnalysisResult">
-        SELECT 
-            dev.device_id,
-            dev.device_name,
-            AVG(d.torque_value) as avg_torque,
-            MAX(d.torque_value) as max_torque,
-            MIN(d.torque_value) as min_torque,
-            STDDEV(d.torque_value) as std_deviation,
-            COUNT(d.data_id) as count
-        FROM 
-            torque_data d
-        LEFT JOIN 
-            device_info dev ON d.device_id = dev.device_id
+        SELECT
+        dev.device_id,
+        dev.device_name,
+        AVG(d.torque_value) as avg_torque,
+        MAX(d.torque_value) as max_torque,
+        MIN(d.torque_value) as min_torque,
+        STDDEV(d.torque_value) as std_deviation,
+        COUNT(d.data_id) as count
+        FROM
+        torque_data d
+        LEFT JOIN
+        device_info dev ON d.device_id = dev.device_id
         <where>
-            <if test="sensorId != null "> and d.sensor_id = #{sensorId}</if>
-            <if test="startTime != null and startTime != ''"> and d.data_time &gt;= #{startTime}</if>
-            <if test="endTime != null and endTime != ''"> and d.data_time &lt;= #{endTime}</if>
+            <if test="sensorId != null ">and d.sensor_id = #{sensorId}</if>
+            <if test="startTime != null and startTime != ''">and d.data_time &gt;= #{startTime}</if>
+            <if test="endTime != null and endTime != ''">and d.data_time &lt;= #{endTime}</if>
         </where>
-        GROUP BY 
-            dev.device_id, dev.device_name
+        GROUP BY
+        dev.device_id, dev.device_name
     </select>
-    
+
     <!-- 按传感器对比分析数据 -->
     <select id="selectSensorComparisonData" parameterType="java.util.Map" resultMap="TorqueAnalysisResult">
-        SELECT 
-            s.sensor_id,
-            s.sensor_name,
-            AVG(d.torque_value) as avg_torque,
-            MAX(d.torque_value) as max_torque,
-            MIN(d.torque_value) as min_torque,
-            STDDEV(d.torque_value) as std_deviation,
-            COUNT(d.data_id) as count
-        FROM 
-            torque_data d
-        LEFT JOIN 
-            sensor_info s ON d.sensor_id = s.sensor_id
+        SELECT
+        s.sensor_id,
+        s.sensor_name,
+        AVG(d.torque_value) as avg_torque,
+        MAX(d.torque_value) as max_torque,
+        MIN(d.torque_value) as min_torque,
+        STDDEV(d.torque_value) as std_deviation,
+        COUNT(d.data_id) as count
+        FROM
+        torque_data d
+        LEFT JOIN
+        sensor_info s ON d.sensor_id = s.sensor_id
         <where>
-            <if test="deviceId != null "> and d.device_id = #{deviceId}</if>
-            <if test="startTime != null and startTime != ''"> and d.data_time &gt;= #{startTime}</if>
-            <if test="endTime != null and endTime != ''"> and d.data_time &lt;= #{endTime}</if>
+            <if test="deviceId != null ">and d.device_id = #{deviceId}</if>
+            <if test="startTime != null and startTime != ''">and d.data_time &gt;= #{startTime}</if>
+            <if test="endTime != null and endTime != ''">and d.data_time &lt;= #{endTime}</if>
         </where>
-        GROUP BY 
-            s.sensor_id, s.sensor_name
+        GROUP BY
+        s.sensor_id, s.sensor_name
     </select>
-    
+
     <!-- 查询异常分析数据 -->
     <select id="selectAnomalyData" parameterType="java.util.Map" resultMap="TorqueDataResult">
-        SELECT 
-            d.data_id, d.device_id, dev.device_name, d.sensor_id, s.sensor_name, 
-            d.torque_value, d.data_time, d.data_quality, d.create_time, d.torque_unit, d.rpm, d.temperature
-        FROM 
-            torque_data d
-        LEFT JOIN 
-            device_info dev ON d.device_id = dev.device_id
-        LEFT JOIN 
-            sensor_info s ON d.sensor_id = s.sensor_id
+        SELECT
+        d.data_id, d.device_id, dev.device_name, d.sensor_id, s.sensor_name,
+        d.torque_value, d.data_time, d.data_quality, d.create_time, d.torque_unit, d.rpm, d.temperature
+        FROM
+        torque_data d
+        LEFT JOIN
+        device_info dev ON d.device_id = dev.device_id
+        LEFT JOIN
+        sensor_info s ON d.sensor_id = s.sensor_id
         <where>
             <!-- 异常数据状态为0 -->
             d.data_quality = '0'
-            <if test="deviceId != null "> and d.device_id = #{deviceId}</if>
-            <if test="sensorId != null "> and d.sensor_id = #{sensorId}</if>
-            <if test="startTime != null and startTime != ''"> and d.data_time &gt;= #{startTime}</if>
-            <if test="endTime != null and endTime != ''"> and d.data_time &lt;= #{endTime}</if>
+            <if test="deviceId != null ">and d.device_id = #{deviceId}</if>
+            <if test="sensorId != null ">and d.sensor_id = #{sensorId}</if>
+            <if test="startTime != null and startTime != ''">and d.data_time &gt;= #{startTime}</if>
+            <if test="endTime != null and endTime != ''">and d.data_time &lt;= #{endTime}</if>
         </where>
         ORDER BY d.data_time DESC
     </select>
-    
+
     <!-- 查询统计分析数据 -->
     <select id="selectStatisticsData" parameterType="java.util.Map" resultMap="TorqueAnalysisResult">
-        SELECT 
-            d.device_id,
-            dev.device_name,
-            d.sensor_id,
-            s.sensor_name,
-            AVG(d.torque_value) as avg_torque,
-            MAX(d.torque_value) as max_torque,
-            MIN(d.torque_value) as min_torque,
-            STDDEV(d.torque_value) as std_deviation,
-            COUNT(d.data_id) as count
-        FROM 
-            torque_data d
-        LEFT JOIN 
-            device_info dev ON d.device_id = dev.device_id
-        LEFT JOIN 
-            sensor_info s ON d.sensor_id = s.sensor_id
+        SELECT
+        d.device_id,
+        dev.device_name,
+        d.sensor_id,
+        s.sensor_name,
+        AVG(d.torque_value) as avg_torque,
+        MAX(d.torque_value) as max_torque,
+        MIN(d.torque_value) as min_torque,
+        STDDEV(d.torque_value) as std_deviation,
+        COUNT(d.data_id) as count
+        FROM
+        torque_data d
+        LEFT JOIN
+        device_info dev ON d.device_id = dev.device_id
+        LEFT JOIN
+        sensor_info s ON d.sensor_id = s.sensor_id
         <where>
-            <if test="deviceId != null "> and d.device_id = #{deviceId}</if>
-            <if test="sensorId != null "> and d.sensor_id = #{sensorId}</if>
-            <if test="startTime != null and startTime != ''"> and d.data_time &gt;= #{startTime}</if>
-            <if test="endTime != null and endTime != ''"> and d.data_time &lt;= #{endTime}</if>
+            <if test="deviceId != null ">and d.device_id = #{deviceId}</if>
+            <if test="sensorId != null ">and d.sensor_id = #{sensorId}</if>
+            <if test="startTime != null and startTime != ''">and d.data_time &gt;= #{startTime}</if>
+            <if test="endTime != null and endTime != ''">and d.data_time &lt;= #{endTime}</if>
         </where>
-        GROUP BY 
-            d.device_id, dev.device_name, d.sensor_id, s.sensor_name
+        GROUP BY
+        d.device_id, dev.device_name, d.sensor_id, s.sensor_name
     </select>
 
 </mapper> 

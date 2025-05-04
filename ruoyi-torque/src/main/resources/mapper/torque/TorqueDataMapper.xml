@@ -1,45 +1,58 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.torque.mapper.TorqueDataMapper">
-    
+
     <resultMap type="com.ruoyi.torque.domain.TorqueData" id="TorqueDataResult">
-        <id     property="dataId"       column="data_id"       />
-        <result property="sensorId"     column="sensor_id"     />
-        <result property="deviceId"     column="device_id"     />
-        <result property="torqueValue"  column="torque_value"  />
-        <result property="torqueUnit"   column="torque_unit"   />
-        <result property="rpm"          column="rpm"           />
-        <result property="temperature"  column="temperature"   />
-        <result property="dataTime"     column="data_time"     />
-        <result property="dataQuality"  column="data_quality"  />
-        <result property="createTime"   column="create_time"   />
-        <result property="sensorName"   column="sensor_name"   />
-        <result property="deviceName"   column="device_name"   />
-        <result property="operator"     column="operator"      />
+        <id property="dataId" column="data_id"/>
+        <result property="sensorId" column="sensor_id"/>
+        <result property="deviceId" column="device_id"/>
+        <result property="torqueValue" column="torque_value"/>
+        <result property="torqueUnit" column="torque_unit"/>
+        <result property="rpm" column="rpm"/>
+        <result property="temperature" column="temperature"/>
+        <result property="dataTime" column="data_time"/>
+        <result property="dataQuality" column="data_quality"/>
+        <result property="createTime" column="create_time"/>
+        <result property="sensorName" column="sensor_name"/>
+        <result property="deviceName" column="device_name"/>
+        <result property="operator" column="operator"/>
     </resultMap>
 
     <sql id="selectTorqueDataVo">
-        select td.data_id, td.sensor_id, td.device_id, td.torque_value, td.torque_unit, td.rpm, td.temperature, td.data_time, td.data_quality, td.create_time, td.operator,
-               s.sensor_name, d.device_name
+        select td.data_id,
+               td.sensor_id,
+               td.device_id,
+               td.torque_value,
+               td.torque_unit,
+               td.rpm,
+               td.temperature,
+               td.data_time,
+               td.data_quality,
+               td.create_time,
+               td.operator,
+               s.sensor_name,
+               d.device_name
         from torque_data td
-        left join sensor_info s on td.sensor_id = s.sensor_id
-        left join device_info d on td.device_id = d.device_id
+                 left join sensor_info s on td.sensor_id = s.sensor_id
+                 left join device_info d on td.device_id = d.device_id
     </sql>
 
     <select id="selectTorqueDataList" parameterType="com.ruoyi.torque.domain.TorqueData" resultMap="TorqueDataResult">
         <include refid="selectTorqueDataVo"/>
-        <where>  
-            <if test="sensorId != null "> and td.sensor_id = #{sensorId}</if>
-            <if test="deviceId != null "> and td.device_id = #{deviceId}</if>
-            <if test="sensorName != null  and sensorName != ''"> and s.sensor_name like concat('%', #{sensorName}, '%')</if>
-            <if test="deviceName != null  and deviceName != ''"> and d.device_name like concat('%', #{deviceName}, '%')</if>
-            <if test="torqueValue != null "> and td.torque_value = #{torqueValue}</if>
-            <if test="torqueUnit != null  and torqueUnit != ''"> and td.torque_unit = #{torqueUnit}</if>
-            <if test="dataTime != null "> and td.data_time = #{dataTime}</if>
-            <if test="dataQuality != null "> and td.data_quality = #{dataQuality}</if>
-            <if test="operator != null and operator != ''"> and td.operator = #{operator}</if>
+        <where>
+            <if test="sensorId != null ">and td.sensor_id = #{sensorId}</if>
+            <if test="deviceId != null ">and td.device_id = #{deviceId}</if>
+            <if test="sensorName != null  and sensorName != ''">and s.sensor_name like concat('%', #{sensorName}, '%')
+            </if>
+            <if test="deviceName != null  and deviceName != ''">and d.device_name like concat('%', #{deviceName}, '%')
+            </if>
+            <if test="torqueValue != null ">and td.torque_value = #{torqueValue}</if>
+            <if test="torqueUnit != null  and torqueUnit != ''">and td.torque_unit = #{torqueUnit}</if>
+            <if test="dataTime != null ">and td.data_time = #{dataTime}</if>
+            <if test="dataQuality != null ">and td.data_quality = #{dataQuality}</if>
+            <if test="operator != null and operator != ''">and td.operator = #{operator}</if>
             <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
                 AND td.data_time &gt;= #{params.beginTime}
             </if>
@@ -49,29 +62,29 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         </where>
         order by td.data_time desc
     </select>
-    
+
     <select id="selectTorqueDataByDataId" parameterType="Long" resultMap="TorqueDataResult">
         <include refid="selectTorqueDataVo"/>
         where td.data_id = #{dataId}
     </select>
-    
+
     <select id="selectLatestTorqueDataBySensorId" parameterType="Long" resultMap="TorqueDataResult">
         <include refid="selectTorqueDataVo"/>
         where td.sensor_id = #{sensorId}
         order by td.data_time desc
         limit 1
     </select>
-    
+
     <select id="selectTorqueDataStatistics" parameterType="java.util.Map" resultType="java.util.Map">
-        select 
-            max(torque_value) as max_value,
-            min(torque_value) as min_value,
-            avg(torque_value) as avg_value,
-            STDDEV(torque_value) as std_deviation
+        select
+        max(torque_value) as max_value,
+        min(torque_value) as min_value,
+        avg(torque_value) as avg_value,
+        STDDEV(torque_value) as std_deviation
         from torque_data
         <where>
-            <if test="sensorId != null"> and sensor_id = #{sensorId}</if>
-            <if test="deviceId != null"> and device_id = #{deviceId}</if>
+            <if test="sensorId != null">and sensor_id = #{sensorId}</if>
+            <if test="deviceId != null">and device_id = #{deviceId}</if>
             <if test="beginTime != null and beginTime != ''">
                 AND data_time &gt;= #{beginTime}
             </if>
@@ -80,8 +93,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             </if>
         </where>
     </select>
-        
-    <insert id="insertTorqueData" parameterType="com.ruoyi.torque.domain.TorqueData" useGeneratedKeys="true" keyProperty="dataId">
+
+    <insert id="insertTorqueData" parameterType="com.ruoyi.torque.domain.TorqueData" useGeneratedKeys="true"
+            keyProperty="dataId">
         insert into torque_data
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="sensorId != null">sensor_id,</if>
@@ -94,7 +108,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="dataQuality != null">data_quality,</if>
             <if test="createTime != null">create_time,</if>
             <if test="operator != null">operator,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="sensorId != null">#{sensorId},</if>
             <if test="deviceId != null">#{deviceId},</if>
@@ -106,13 +120,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="dataQuality != null">#{dataQuality},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="operator != null">#{operator},</if>
-         </trim>
+        </trim>
     </insert>
-    
+
     <insert id="batchInsertTorqueData" parameterType="java.util.List">
-        insert into torque_data(sensor_id, device_id, torque_value, torque_unit, rpm, temperature, data_time, data_quality, create_time, operator) values
+        insert into torque_data(sensor_id, device_id, torque_value, torque_unit, rpm, temperature, data_time,
+        data_quality, create_time, operator) values
         <foreach item="item" collection="list" separator=",">
-            (#{item.sensorId}, #{item.deviceId}, #{item.torqueValue}, #{item.torqueUnit}, #{item.rpm}, #{item.temperature}, #{item.dataTime}, #{item.dataQuality}, #{item.createTime}, #{item.operator})
+            (#{item.sensorId}, #{item.deviceId}, #{item.torqueValue}, #{item.torqueUnit}, #{item.rpm},
+            #{item.temperature}, #{item.dataTime}, #{item.dataQuality}, #{item.createTime}, #{item.operator})
         </foreach>
     </insert>
 
@@ -134,11 +150,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <delete id="deleteTorqueDataByDataId" parameterType="Long">
-        delete from torque_data where data_id = #{dataId}
+        delete
+        from torque_data
+        where data_id = #{dataId}
     </delete>
 
     <delete id="deleteTorqueDataByDataIds" parameterType="String">
-        delete from torque_data where data_id in 
+        delete from torque_data where data_id in
         <foreach item="dataId" collection="array" open="(" separator="," close=")">
             #{dataId}
         </foreach>
