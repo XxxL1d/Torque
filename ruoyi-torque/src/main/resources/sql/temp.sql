@@ -1,1 +1,0 @@
-DESCRIBE torque_data;
